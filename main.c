@@ -69,7 +69,6 @@
  *******************************************/
 
 #pragma PERSISTENT(RTC_time)
-#pragma PERSISTENT(Temperature)
 #pragma PERSISTENT(Temp_data)
 #pragma PERSISTENT(head_index)
 #pragma PERSISTENT(tail_index)

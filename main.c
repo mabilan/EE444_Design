@@ -96,19 +96,19 @@ int main (void)
 
     // Stop watchdog timer
     WDT_A_hold(WDT_A_BASE);
-	initialize_GPIO ();
-	initialize_Clocks ();
-	initialize_ADC ();
-	initialize_RTC ();
-	PMM_enableInternalReference ();
-	PMM_enableTempSensor ();
+    initialize_GPIO ();
+    initialize_Clocks ();
+    initialize_ADC ();
+    initialize_RTC ();
+    PMM_enableInternalReference ();
+    PMM_enableTempSensor ();
 
-	// initialize_I2C();
-	// other init functions Kyle needs
-	RTC_start (RTC_Base_Address,
-	           RTC_CLOCKSOURCE_XT1CLK);
-	// Enter LPM0 with Global Interrupts Enabled
-	__bis_SR_register (LPM3_bits + GIE);
+    // initialize_I2C();
+    // other init functions Kyle needs
+    RTC_start (RTC_Base_Address,
+               RTC_CLOCKSOURCE_XT1CLK);
+    // Enter LPM0 with Global Interrupts Enabled
+    __bis_SR_register (LPM3_bits + GIE);
 }
 
 

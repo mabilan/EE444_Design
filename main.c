@@ -72,7 +72,7 @@
 #pragma PERSISTENT(Temp_data)
 #pragma PERSISTENT(head_index)
 #pragma PERSISTENT(tail_index)
-#pragma PERSISTENT(Temp_data)
+#pragma PERSISTENT(full_buffer)
 
 
 /************************

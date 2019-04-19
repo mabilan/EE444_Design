@@ -26,6 +26,41 @@
 #pragma PERSISTENT(Temp_data)
 
 
+/**********************************************
+ * Hardware Platform Defines
+ **********************************************
+ *
+ * The define aliases below are used to
+ * indicate which ST25 NFC tag the device is
+ * connected to. This setting will impact the
+ * size of data "chunks" sent at a given time
+ * to NFC memory.
+ *
+ * Device List
+ * ------------
+ * ST25DV04K
+ * ST25DV16K
+ * ST25DV64K
+ *
+ * *******************************************/
+
+#define ST25DV04K   1
+#define ST25DV16K   0
+#define ST25DV64K   0
+
+#if ST25DV04K
+#define WRITECYCLES 2
+#endif
+
+#if ST25DV16K
+#define WRITECYCLES 8
+#endif
+
+#if ST25DV64K
+#define WRITECYCLES 32
+#endif
+
+
 /*********************
  * Constants/Defines
  ********************/
@@ -33,7 +68,9 @@
 #define ADCREF_15V_30   *((unsigned int *)0x1A1A)       // Temp. Sensor Calibration for 30C
 #define ADCREF_15V_105  *((unsigned int *)0x1A1C)       // Temp. Sensor Calibration for 105C
 #define ADCREF_DIFF     (ADCREF_15V_105 - ADCREF_15V_30)// Difference in ADC ref values
-#define BUFFERSIZE      28000                           // # of bytes for data storage
+#define BUFFERSIZE      2056                            // # of bytes for data storage
+#define WRITEBUFF       256                             // multi-byte write limit for NFC tag
+
 
 /************************
  * Variable Definitions
@@ -129,4 +166,15 @@ __interrupt void ADC_ISR (void)
     }
 
     ADCIFG = 0;
+}
+
+// ISR for Port 2 (Button) Interrupt
+#pragma vector = PORT2_VECTOR
+__interrupt void Button_Press (void)
+{
+    //TODO: Load first 256 byte chunk into I2C TX buffer IF NOT TXING
+    __delay_cycles(2);
+
+    // Clear P2.3 interrupt flag
+    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN3);
 }

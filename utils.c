@@ -27,6 +27,15 @@ inline void initialize_GPIO (void)
     GPIO_setOutputLowOnPin (GPIO_PORT_PE, GPIO_PIN_ALL16);
     GPIO_setOutputLowOnPin (GPIO_PORT_PJ, GPIO_PIN_ALL16);
 
+    // Initialize GPIO 2.3 (Button) for input
+    //Set P2.3 (S3) to input
+    GPIO_setAsInputPinWithPullUpResistor (GPIO_PORT_P2, GPIO_PIN3);
+    GPIO_selectInterruptEdge (GPIO_PORT_P2,
+                              GPIO_PIN3,
+                              GPIO_HIGH_TO_LOW_TRANSITION);
+    GPIO_enableInterrupt (GPIO_PORT_P2, GPIO_PIN3);
+    GPIO_clearInterrupt (GPIO_PORT_P2, GPIO_PIN3);
+
     // FRAM device unlock (prevents compiler warning)
     PMM_unlockLPM5 ();
 }

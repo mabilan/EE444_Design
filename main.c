@@ -14,18 +14,6 @@
 #include "wdt_a.h"
 
 
-/*******************************************
- *  Persistent (FRAM) Variable Declarations
- *******************************************/
-
-#pragma PERSISTENT(RTC_time)
-#pragma PERSISTENT(Temperature)
-#pragma PERSISTENT(Temp_data)
-#pragma PERSISTENT(head_index)
-#pragma PERSISTENT(tail_index)
-#pragma PERSISTENT(Temp_data)
-
-
 /**********************************************
  * Hardware Platform Defines
  **********************************************
@@ -70,6 +58,18 @@
 #define ADCREF_DIFF     (ADCREF_15V_105 - ADCREF_15V_30)// Difference in ADC ref values
 #define BUFFERSIZE      2056                            // # of bytes for data storage
 #define WRITEBUFF       256                             // multi-byte write limit for NFC tag
+
+
+/*******************************************
+ *  Persistent (FRAM) Variable Declarations
+ *******************************************/
+
+#pragma PERSISTENT(RTC_time)
+#pragma PERSISTENT(Temperature)
+#pragma PERSISTENT(Temp_data)
+#pragma PERSISTENT(head_index)
+#pragma PERSISTENT(tail_index)
+#pragma PERSISTENT(Temp_data)
 
 
 /************************

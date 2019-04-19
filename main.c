@@ -21,14 +21,18 @@
  * The define aliases below are used to
  * indicate which ST25 NFC tag the device is
  * connected to. This setting will impact the
- * size of data "chunks" sent at a given time
- * to NFC memory.
+ * size of data number of 256 byte data blocks
+ * that must be sent to NFC memory, based on
+ * individual device capacity.
+ * 
+ * Set define value of target device to 1, set
+ * remaining device define values to 0.
  *
  * Device List
  * ------------
- * ST25DV04K
- * ST25DV16K
- * ST25DV64K
+ * ST25DV04K - 512 byte memory
+ * ST25DV16K - 2048 byte memory
+ * ST25DV64K - 8192 byte memory
  *
  * *******************************************/
 

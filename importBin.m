@@ -4,12 +4,14 @@
 %
 % Simple program that reads binary data file exported from ST25 NFC
 % tag reader (mobile application) for processing.
-% Our project uses ST25DV04K:
-%   - memory capacity is 512 bytes, reading data.bin should produce
-%     a 512x1 matrix of integer values
+% Resulting data structure is based on NFC Device:
+%   - ST25DV04K: 512 byte *.bin file -> 512x1 matrix
+%   - ST25DV16K: 2084 byte *.bin file -> 2084x1 matrix
+%   - ST25DV64K: 8192 byte *.bin file -> 8192x1 matrix
+
 
 % Set file absolute path if not in local dir
-fPath = 'D:\Users\mabilan\Documents\EE 444\Design Project';
+fPath = 'C:\Sample\Directory\Path';
 
 % Set file name to be read - ST25 default is data.bin
 fName = 'data.bin';

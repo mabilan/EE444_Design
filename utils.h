@@ -41,6 +41,10 @@ typedef struct Hour_Timer_type {
 
 #define ADC_Base_Address    0x0700
 #define RTC_Base_Address    0x0300
+#define I2C_TX_BUFF_SIZE    64
+#define SLAVE_ADDR          0x53
+#define P4_SDA_PIN          BIT6
+#define P4_SCL_PIN          BIT7
 
 
 /***********************
@@ -63,6 +67,10 @@ inline void initialize_ADC (void);
 // RTC source is the VLOCLOCK: this provides reduced power
 // consumption at the cost of increased drift (up to 50%).
 inline void initialize_RTC(void);
+
+//Configures the I2C registers for the MSP to operate in Master mode
+//
+inline void initialize_I2C(void);
 
 
 #endif /* UTILS_H_ */

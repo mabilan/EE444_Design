@@ -99,6 +99,8 @@ int main (void)
     initialize_Clocks ();
     initialize_ADC ();
     initialize_RTC ();
+    initialize_I2C();
+    UCB1I2CSA = SLAVE_ADDR;       //Put the slave address into the register
     PMM_enableInternalReference ();
     PMM_enableTempSensor ();
 
@@ -182,3 +184,58 @@ __interrupt void Button_Press (void)
     // Clear P2.3 interrupt flag
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN3);
 }
+
+#pragma vector = USCI_B1_VECTOR
+__interrupt void USCIB1_ISR(void)
+{
+    static int i=0;
+    switch(__even_in_range(UCB1IV,0x1e))
+    {
+    case 0x00: //No interrupts
+        break;
+    case 0x02: // ALIFG
+        break;
+    case 0x04: //NACKIFG
+        UCB1CTL1|= UCTXSTT;
+        break;
+    case 0x06: //STTIFG
+        break;
+    case 0x08: //STPIFG
+        break;
+    case 0x0A: //RXIFG3
+        break;
+    case 0x0C: //TXIFG3
+        break;
+    case 0x0E: //RXIFG2
+        break;
+    case 0x10: //TXIFG2
+        break;
+    case 0x12: //RXIFG1
+        break;
+    case 0x14: //TXIFG1
+        break;
+    case 0x16: //RXIFG0
+        break;
+    case 0x18: //TXIFG0
+
+        while(UCB1IFG & UCTXIFG0); //Make sure that there's nothing already in the TX buffer
+        //UCB1TXBUF=TXData[i];      //send the data
+        while(((UCB1IFG & UCTXIFG0))); //Make sure whatever got sent
+        if(i==I2C_TX_BUFF_SIZE){
+        UCB1IFG &= ~UCTXIFG;
+        UCB1CTL1 |= UCTXSTP;
+        }
+        i++;
+        __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0
+        break;
+    case 0x1A: //BCNTIFG
+        break;
+    case 0x1C: //clock low timeout
+        break;
+    case 0x1E: //9th bit
+        break;
+    default:
+        break;
+    }
+}
+

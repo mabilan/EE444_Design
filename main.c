@@ -180,7 +180,11 @@ __interrupt void Button_Press (void)
 {
     //TODO: Load first 256 byte chunk into I2C TX buffer IF NOT TXING
     __delay_cycles(2);
-
+    UCB1CTLW0 |= UCTR+UCTXSTT ;
+        while(((UCB1IFG & UCTXIFG0)==0));
+          UCB1IE |= UCTXIE0;              // transmit,stop interrupt enable
+                               //attempt to write 0x55 just for debugging the lines
+          while((UCB1IFG & UCTXSTP));
     // Clear P2.3 interrupt flag
     GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN3);
 }
@@ -226,7 +230,7 @@ __interrupt void USCIB1_ISR(void)
         UCB1CTL1 |= UCTXSTP;
         }
         i++;
-        __bic_SR_register_on_exit(LPM0_bits); // Exit LPM0
+        __bic_SR_register_on_exit(LPM3_bits); // Exit LPM0
         break;
     case 0x1A: //BCNTIFG
         break;

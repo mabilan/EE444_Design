@@ -45,7 +45,7 @@ typedef struct Hour_Timer_type {
 #define SLAVE_ADDR          0x53
 #define P4_SDA_PIN          BIT6
 #define P4_SCL_PIN          BIT7
-
+#define NFC_ADDR            (0x53)
 
 /***********************
  * Function Prototypes

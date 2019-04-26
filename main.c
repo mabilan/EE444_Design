@@ -41,15 +41,15 @@
 #define ST25DV64K   0
 
 #if ST25DV04K
-#define WRITECYCLES 2
+#define WRITECYCLES 16
 #endif
 
 #if ST25DV16K
-#define WRITECYCLES 8
+#define WRITECYCLES 64
 #endif
 
 #if ST25DV64K
-#define WRITECYCLES 32
+#define WRITECYCLES 256
 #endif
 
 
@@ -85,6 +85,7 @@ uint8_t Temp_data[BUFFERSIZE] = {0};
 uint16_t head_index=0;
 uint16_t tail_index=0;
 uint8_t full_buffer=0;
+volatile unsigned char TXData[66]= {0x00,0x00};
 
 /***************
  *  main.c
@@ -92,7 +93,7 @@ uint8_t full_buffer=0;
 
 int main (void)
 {
-
+    int j;
     // Stop watchdog timer
     WDT_A_hold(WDT_A_BASE);
     initialize_GPIO ();
@@ -100,13 +101,10 @@ int main (void)
     initialize_ADC ();
     initialize_RTC ();
     initialize_I2C();
-    UCB1I2CSA = SLAVE_ADDR;       //Put the slave address into the register
+
     PMM_enableInternalReference ();
     PMM_enableTempSensor ();
 
-    // initialize_I2C();
-    // other init functions Kyle needs
-    
     RTC_start (RTC_Base_Address,
                RTC_CLOCKSOURCE_XT1CLK);
     // Enter LPM3, enable global interrupts
@@ -154,23 +152,22 @@ __interrupt void ADC_ISR (void)
 
     if(full_buffer)
     {
-        Temp_data[head_index] = Temperature;
+        Temp_data[tail_index] = Temperature;
         ++head_index;
         ++tail_index;
     }
     else
     {
-        Temp_data[head_index] = Temperature;
-        ++head_index;
-        if (head_index == BUFFERSIZE-1)
+        Temp_data[tail_index] = Temperature;
+        ++tail_index;
+        if (tail_index == BUFFERSIZE-1)
         {
-            head_index = 0;
-            ++tail_index;
+            tail_index = 0;
+            ++head_index;
             full_buffer = 1;
         }
 
     }
-
     ADCIFG = 0;
 }
 
@@ -178,21 +175,27 @@ __interrupt void ADC_ISR (void)
 #pragma vector = PORT2_VECTOR
 __interrupt void Button_Press (void)
 {
-    //TODO: Load first 256 byte chunk into I2C TX buffer IF NOT TXING
-    __delay_cycles(2);
-    UCB1CTLW0 |= UCTR+UCTXSTT ;
-        while(((UCB1IFG & UCTXIFG0)==0));
-          UCB1IE |= UCTXIE0;              // transmit,stop interrupt enable
-                               //attempt to write 0x55 just for debugging the lines
-          while((UCB1IFG & UCTXSTP));
     // Clear P2.3 interrupt flag
-    GPIO_clearInterrupt(GPIO_PORT_P2, GPIO_PIN3);
+    GPIO_clearInterrupt (GPIO_PORT_P2, GPIO_PIN3);
+    GPIO_disableInterrupt (GPIO_PORT_P2, GPIO_PIN3);
+
+    // Disable RTC (no more sampling)
+    RTC_stop(RTC_Base_Address);
+
+    UCB1CTLW0 |= UCTR+UCTXSTT ;
+    while(((UCB1IFG & UCTXIFG0)==0));
+    UCB1IE |= UCTXIE0;              // transmit,stop interrupt enable
+                                    //attempt to write 0x55 just for debugging the lines
+    __bis_SR_register(GIE);
+    while((UCB1IFG & UCTXSTP));
+    GPIO_enableInterrupt (GPIO_PORT_P2, GPIO_PIN3);
 }
 
 #pragma vector = USCI_B1_VECTOR
 __interrupt void USCIB1_ISR(void)
 {
     static int i=0;
+
     switch(__even_in_range(UCB1IV,0x1e))
     {
     case 0x00: //No interrupts
@@ -221,16 +224,32 @@ __interrupt void USCIB1_ISR(void)
     case 0x16: //RXIFG0
         break;
     case 0x18: //TXIFG0
+        while(UCB1IFG & UCTXIFG0);
+        UCB1TXBUF=TXData[i];
+        while(UCB1IFG & UCTXIFG0);
+        for (i=0; i<64; i++)
+        {
+            if(head_index>=BUFFERSIZE)
+            {
+                head_index = 0;
+            }
+            if(head_index == tail_index)
+            {
+                TXData[2+i] == 0;
+                continue;
+            }
+            TXData[2+i] = Temp_data[head_index];
+            head_index++;
+        }
 
-        while(UCB1IFG & UCTXIFG0); //Make sure that there's nothing already in the TX buffer
-        //UCB1TXBUF=TXData[i];      //send the data
-        while(((UCB1IFG & UCTXIFG0))); //Make sure whatever got sent
-        if(i==I2C_TX_BUFF_SIZE){
-        UCB1IFG &= ~UCTXIFG;
-        UCB1CTL1 |= UCTXSTP;
+        if(i==64)
+        {
+            UCB1IFG &= ~UCTXIFG;
+            UCB1CTL1 |= UCTXSTP;
+            i=0;
+            break;
         }
         i++;
-        __bic_SR_register_on_exit(LPM3_bits); // Exit LPM0
         break;
     case 0x1A: //BCNTIFG
         break;
@@ -242,4 +261,3 @@ __interrupt void USCIB1_ISR(void)
         break;
     }
 }
-

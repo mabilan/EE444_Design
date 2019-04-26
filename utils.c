@@ -35,6 +35,7 @@ inline void initialize_GPIO (void)
                               GPIO_HIGH_TO_LOW_TRANSITION);
     GPIO_enableInterrupt (GPIO_PORT_P2, GPIO_PIN3);
     GPIO_clearInterrupt (GPIO_PORT_P2, GPIO_PIN3);
+
     //I2C pins
     P4SEL0 |= P4_SDA_PIN+P4_SCL_PIN;
     P4SEL1 &= ~(P4_SDA_PIN+P4_SCL_PIN);
@@ -127,10 +128,13 @@ inline void initialize_RTC (void)
 
 inline void initialize_I2C(void)
 {
-    //configure I2c registers
-    UCB1CTLW0 = UCSWRST;          //SW Reset
+    P4SEL0 |= BIT6 + BIT7;      //I2C Pins
+    P4SEL1 =0x00;
+                                //configure I2c registers
+    UCB1CTLW0 = UCSWRST;        //SW Reset
     UCB1CTLW0 |=UCMODE_3 + UCMST+UCSYNC+ UCSSEL_2; //I2C Mode MSP controls clock, so it's a Master
-    UCB1CTLW1= UCASTP_2;           // Auto-stop assertion
-    UCB1BRW=8;                   //Divide the 8 MHz clock to get 1 MHz for I2C
-    UCB1CTLW0 &=~UCSWRST;        //SW Reset disable
+    UCB1CTLW1= UCASTP_2;
+    UCB1BRW=4;
+    UCB1CTLW0 &=~UCSWRST;       //SW Reset disable
+    UCB1I2CSA = NFC_ADDR;       //Put the slave address into the register
 }

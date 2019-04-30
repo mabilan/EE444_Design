@@ -5,30 +5,55 @@
 % Simple program that reads binary data file exported from ST25 NFC
 % tag reader (mobile application) for processing.
 % Resulting data structure is based on NFC Device:
-%   - ST25DV04K: 512 byte *.bin file -> 512x1 matrix
-%   - ST25DV16K: 2084 byte *.bin file -> 2084x1 matrix
-%   - ST25DV64K: 8192 byte *.bin file -> 8192x1 matrix
+%   - ST25DV04K: 512 byte *.bin files
+%   - ST25DV16K: 2084 byte *.bin files
+%   - ST25DV64K: 8192 byte *.bin files
 
 
-% Set file absolute path if not in local dir
-fPath = 'C:\Sample\Directory\Path';
+% Set relative file path - all binary files should be stored in this local
+%   directory
+filePath = '.\binfiles\';
 
-% Set file name to be read - ST25 default is data.bin
-fName = 'data.bin';
+% Set file naming scheme to be read - default is set to 'data'
+%   THIS PARAMETER MUST BE USER-DEFINED
+fileNameScheme = 'data';
 
-% Create full file location from path and name
-filename = fullfile(fPath, fName);
+% Set file naming scheme index values to read between (e.g. data to data5)
+%   THESE PARAMETERS MUST BE USER-DEFINED
+fileIndexStart = 1;
+fileIndexEnd = 5;
 
 % Set binary data type to be read
+% Default value corresponds to data type in our implementation
 format = 'uint8';
 
-% Open file:
-%   - set to read-only
-fileID = fopen(filename, 'r');
+% Empty matrix for data storage
+Data = [];
 
-if fileID == -1
-    error('Cannot open file: %s', filename);
+for i = fileIndexStart:fileIndexEnd
+    % Create full file location from path and name
+    filename = fullfile(filePath, [fileNameScheme num2str(i) '.bin']);
+
+    % Open file:
+    %   - set to read-only
+    fileID = fopen(filename, 'r');
+
+    if fileID == -1
+        error('Cannot open file: %s. Terminating session.', filename);
+        break;
+    end
+    
+    % Read current file data
+    TempData = fread(fileID, Inf, format);
+    
+    % Concatenate new data with previously stored data
+    Data = [Data; TempData];
+    
+    fclose(fileID);
 end
 
-Data = fread(fileID, Inf, format);
-fclose(fileID);
+plot(Data);
+ylim([0 100]);
+ylabel('Temperature (Degrees C)');
+xlabel('Time (s)');
+title('Data Collection: Temp. vs. Time');
